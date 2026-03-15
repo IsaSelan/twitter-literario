@@ -238,7 +238,16 @@ color:#1da1f2;
 
 <script>
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDv_7f_zp_Q3p67J2_fwa0870u8PZ97G2U",
+  authDomain: "twitter-literario.firebaseapp.com",
+  projectId: "twitter-literario",
+  storageBucket: "twitter-literario.firebasestorage.app",
+  messagingSenderId: "63443793806",
+  appId: "1:63443793806:web:e8a5d6d0e05ff79fde96df"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
