@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Twitter Literário</title>
+
+<style>
+
+.tweetImg{
+width:100%;
+border-radius:10px;
+margin-top:10px;
+}
+
+body{
+margin:0;
+font-family:Segoe UI, Arial;
+background:#f0f2f5;
+display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:250px;
+background:white;
+height:100vh;
+border-right:1px solid #ddd;
+padding:20px;
+}
+
+.logo{
+font-size:30px;
+color:#1da1f2;
+font-weight:bold;
+margin-bottom:30px;
+}
+
+.menu div{
+margin:15px 0;
+cursor:pointer;
+font-size:18px;
+}
+
+/* FEED */
+
+.feed{
+flex:1;
+max-width:650px;
+background:white;
+border-left:1px solid #ddd;
+border-right:1px solid #ddd;
+}
+
+.header{
+padding:15px;
+font-size:20px;
+font-weight:bold;
+border-bottom:1px solid #eee;
+}
+
+/* COMPOSER */
+
+.composer{
+padding:15px;
+border-bottom:1px solid #eee;
+}
+
+textarea{
+width:100%;
+height:60px;
+border-radius:10px;
+border:1px solid #ccc;
+padding:10px;
+font-size:14px;
+}
+
+button{
+margin-top:10px;
+background:#1da1f2;
+border:none;
+color:white;
+padding:8px 18px;
+border-radius:20px;
+cursor:pointer;
+}
+
+/* TWEET */
+
+.tweet{
+display:flex;
+gap:10px;
+padding:15px;
+border-bottom:1px solid #eee;
+}
+
+.avatar{
+width:48px;
+height:48px;
+border-radius:50%;
+}
+
+.content{
+flex:1;
+}
+
+.name{
+font-weight:bold;
+}
+
+.username{
+color:gray;
+font-size:14px;
+}
+
+.book{
+width:140px;
+margin-top:10px;
+border-radius:8px;
+}
+
+.summary{
+background:#f1f3f5;
+padding:10px;
+border-radius:10px;
+margin-top:8px;
+font-size:14px;
+}
+
+/* ACTIONS */
+
+.actions{
+margin-top:10px;
+display:flex;
+gap:25px;
+color:#1da1f2;
+cursor:pointer;
+}
+
+/* COMMENTS */
+
+.commentBox{
+margin-top:10px;
+}
+
+.comment{
+background:#f5f7fa;
+padding:8px;
+border-radius:8px;
+margin-top:6px;
+display:flex;
+justify-content:space-between;
+}
+
+.delete{
+color:red;
+cursor:pointer;
+font-size:12px;
+}
+
+/* TRENDING */
+
+.trending{
+width:280px;
+padding:20px;
+}
+
+.trendBox{
+background:white;
+border-radius:10px;
+padding:15px;
+}
+
+.trend{
+padding:8px 0;
+color:#1da1f2;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+<div class="logo">𝕏</div>
+
+<div class="menu">
+<div>🏠 Início</div>
+<div>🔎 Explorar</div>
+<div>👤 Perfil</div>
+</div>
+
+</div>
+
+<!-- FEED -->
+
+<div class="feed">
+
+<div class="header">Twitter Literário</div>
+
+<div class="composer">
+
+<textarea id="tweetInput" placeholder="O que você acha? Use #hashtags"></textarea>
+
+<input type="file" id="imageInput">
+
+<button onclick="postTweet()">Tweetar</button>
+
+</div>
+
+<div id="timeline"></div>
+
+</div>
+
+<!-- TRENDING -->
+
+<div class="trending">
+
+<div class="trendBox">
+
+<h3>🔥 Trending</h3>
+
+<div class="trend">#CapituInocente</div>
+<div class="trend">#CapituTraiu</div>
+<div class="trend">#DomCasmurro</div>
+<div class="trend">#LiteraturaBrasileira</div>
+
+</div>
+
+</div>
+
+<script>
+
+const defaultTweets=[
+
+{
+user:"Machado de Assis",
+avatar:"https://cdn.vnda.com.br/cobogo/2021/10/18/23_10_6_673_site_autor_MachadodeAssis.jpg?v=1666988557",
+text:"O julgamento de Capitu: traiu ou não? #DomCasmurro #Capitu",
+likes:210,
+book:true,
+comments:[
+{text:"@leitora: #CapituInocente Bentinho era muito ciumento!",likes:3},
+{text:"@critico: #CapituTraiu Existem vários indícios no livro.",likes:2},
+{text:"@prof: #LiteraturaBrasileira O genial da obra é a dúvida.",likes:4},
+{text:"@estudante: #DomCasmurro sempre gera debates nas aulas!",likes:2},
+{text:"@leitor: #CapituInocente Bentinho era um narrador pouco confiável.",likes:1}
+]
+}
+
+]
+
+function loadTweets(){
+
+let tweets=JSON.parse(localStorage.getItem("tweets"))
+
+if(!tweets){
+
+tweets=defaultTweets
+localStorage.setItem("tweets",JSON.stringify(tweets))
+
+}
+
+const timeline=document.getElementById("timeline")
+timeline.innerHTML=""
+
+tweets.forEach((t,i)=>{
+
+let commentsHTML=""
+
+t.comments.forEach((c,ci)=>{
+
+if(typeof c === "string"){
+c = {text:c, likes:0}
+}
+
+commentsHTML+=`
+<div class="comment">
+
+<span>${formatHashtags(c.text)}</span>
+
+<div>
+
+<span onclick="likeComment(${i},${ci})">❤️ ${c.likes}</span>
+
+<span class="delete" onclick="deleteComment(${i},${ci})">🗑</span>
+
+</div>
+
+</div>
+`
+
+})
+
+let div=document.createElement("div")
+div.className="tweet"
+
+div.innerHTML=`
+
+<img class="avatar" src="${t.avatar || 'https://img.freepik.com/vetores-premium/ilustracao-plana-vetorial-em-escala-de-cinza-avatar-perfil-de-usuario-icone-de-pessoa-imagem-de-perfil-de-silhueta-neutra-de-genero-adequado-para-perfis-de-midia-social-icones-protetores-de-tela-e-como-um-modelo-x9xa_719432-2210.jpg?semt=ais_hybrid&w=740&q=80'}">
+
+<div class="content">
+
+<div>
+<span class="name">${t.user}</span>
+<span class="username">@autor</span>
+</div>
+
+<p>${formatHashtags(t.text)}</p>
+
+${t.image ? `<img class="tweetImg" src="${t.image}">` : ""}
+
+${t.book?`
+
+<img class="book"
+src="https://m.media-amazon.com/images/I/61x1ZHomWUL._AC_UF1000,1000_QL80_.jpg">
+
+<div class="summary">
+
+Dom Casmurro conta a história de Bentinho e Capitu.  
+Bentinho acredita ter sido traído por Capitu com Escobar,  
+mas o livro nunca confirma isso claramente.
+
+</div>
+
+`:""}
+
+<div class="actions">
+
+<span onclick="likeTweet(${i})">❤️ ${t.likes}</span>
+
+<span onclick="addComment(${i})">💬 Comentar</span>
+
+<span onclick="deleteTweet(${i})">🗑 Apagar</span>
+
+</div>
+
+<div class="commentBox">
+
+${commentsHTML}
+
+</div>
+
+</div>
+`
+
+timeline.appendChild(div)
+
+})
+
+}
+
+function postTweet(){
+
+let text = document.getElementById("tweetInput").value
+let file = document.getElementById("imageInput").files[0]
+
+if(!text && !file) return
+
+let tweets = JSON.parse(localStorage.getItem("tweets")) || []
+
+if(file){
+
+let reader = new FileReader()
+
+reader.onload = function(){
+
+tweets.unshift({
+user:"Usuário",
+avatar:"https://img.freepik.com/vetores-premium/ilustracao-plana-vetorial-em-escala-de-cinza-avatar-perfil-de-usuario-icone-de-pessoa-imagem-de-perfil-de-silhueta-neutra-de-genero-adequado-para-perfis-de-midia-social-icones-protetores-de-tela-e-como-um-modelo-x9xa_719432-2210.jpg?semt=ais_hybrid&w=740&q=80",
+text:text,
+image:reader.result,
+likes:0,
+comments:[]
+})
+
+localStorage.setItem("tweets", JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+reader.readAsDataURL(file)
+
+}else{
+
+tweets.unshift({
+user:"Usuário",
+avatar:"https://img.freepik.com/vetores-premium/ilustracao-plana-vetorial-em-escala-de-cinza-avatar-perfil-de-usuario-icone-de-pessoa-imagem-de-perfil-de-silhueta-neutra-de-genero-adequado-para-perfis-de-midia-social-icones-protetores-de-tela-e-como-um-modelo-x9xa_719432-2210.jpg?semt=ais_hybrid&w=740&q=80",
+text:text,
+image:null,
+likes:0,
+comments:[]
+})
+
+localStorage.setItem("tweets", JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+document.getElementById("tweetInput").value=""
+document.getElementById("imageInput").value=""
+
+}
+
+
+
+function likeTweet(i){
+
+let tweets=JSON.parse(localStorage.getItem("tweets"))
+
+tweets[i].likes++
+
+localStorage.setItem("tweets",JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+function addComment(i){
+
+let text=prompt("Digite seu comentário")
+
+if(!text)return
+
+let tweets=JSON.parse(localStorage.getItem("tweets"))
+
+tweets[i].comments.push({
+
+text:"@usuario: "+text,
+likes:0
+
+})
+
+localStorage.setItem("tweets",JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+function likeComment(t,c){
+
+let tweets=JSON.parse(localStorage.getItem("tweets"))
+
+tweets[t].comments[c].likes++
+
+localStorage.setItem("tweets",JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+function deleteComment(t,c){
+
+let tweets=JSON.parse(localStorage.getItem("tweets"))
+
+tweets[t].comments.splice(c,1)
+
+localStorage.setItem("tweets",JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+loadTweets()
+
+function deleteTweet(i){
+
+let confirmacao = confirm("Deseja apagar este tweet?")
+
+if(!confirmacao) return
+
+let tweets = JSON.parse(localStorage.getItem("tweets"))
+
+tweets.splice(i,1)
+
+localStorage.setItem("tweets", JSON.stringify(tweets))
+
+loadTweets()
+
+}
+
+function formatHashtags(text){
+
+return text.replace(/#(\w+)/g,'<span style="color:#1da1f2;font-weight:bold">#$1</span>')
+
+}
+
+</script>
+
+</body>
+</html>
